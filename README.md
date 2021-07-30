@@ -19,26 +19,26 @@
 
 通过读取 /var/log/wtmp，获取各个用户的在线时间(以小时为单位)，并统一格式
 
-输出格式：`学生ID:在线时间(h)`
+输出格式：`学生ID 在线时间(h)`
 
 ```
 ➜  yamabuki git:(main) ✗ bash online_time.sh
-root:0.02
-name1e5s:3352.29
+root 0.02
+name1e5s 3352.29
 ```
 
 ### Login Count
 
 通过读取 /var/log/wtmp，获取各个用户的登陆次数
 
-输出格式：`学生ID:登陆次数`
+输出格式：`学生ID 登陆次数`
 
 ```
 ➜  yamabuki git:(main) ✗ bash login_count.sh
-name1e5s:38
-reboot:10
-root:4
-shutdown:8
+name1e5s 38
+reboot 10
+root 4
+shutdown 8
 ```
 
 ### First Login Time
@@ -51,4 +51,17 @@ shutdown:8
 ➜  yamabuki git:(main) ✗ bash first_login_time.sh
 frank 2021-07-28T08:03:34+0000
 yhx 2021-07-29T01:12:59+0000
+```
+
+### High CPU Cost Process
+
+获取一段时间内平均 CPU 占有率大于一定数值的进程。
+
+输出格式： `学生ID PID 程序名 平均CPU占有率`
+
+```
+➜  yamabuki git:(main) ✗ bash high_cpu_cost_process.sh
+_windowserver 131 /System/Library/ 27.98
+name1e5s 6853 /Applications/Ne 13.745
+root 6826 /usr/sbin/blueto 5.515
 ```
