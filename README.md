@@ -14,3 +14,7 @@
 ### Login Count
 
 通过读取 /var/log/wtmp，获取各个用户的登陆次数
+
+### First Login Time
+
+通过读取 /var/log/wtmp，获取各个用户的首次登陆时间，可近似视为首次开始实验的时间
