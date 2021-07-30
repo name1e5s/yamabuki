@@ -76,7 +76,6 @@ static void list_node(const char *prefix, const char *file_name) {
 
     int check_result = check_node(file_name, &status);
     if(check_result) {
-        char stat_time_str[64];
         printf ("%s:%s:%s\n", user_id, node_name, invalid_type_str(check_result));
     }
 	
