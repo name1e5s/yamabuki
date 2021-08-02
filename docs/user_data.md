@@ -17,7 +17,7 @@
   - [ ] 每个 Phase 的提交次数*
   - [ ] 每个 Phase 的排名*
 
-其中，需要处理 `lablogdata` 内的日志文件的需求（以星号标记）由陈璇实现，其余需求由于海鑫实现（代码URL https://github.com/name1e5s/yamabuki）。
+其中，需要处理 `lablogdata` 内的日志文件的需求（以星号标记）由程璇实现，其余需求由于海鑫实现（代码URL https://github.com/name1e5s/yamabuki）。
 
 ## 实现记录
 
