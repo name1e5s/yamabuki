@@ -6,18 +6,18 @@
 
 - [x] 监测长时间占用较多 CPU 资源的进程并做记录，必要时可删除进程
 - [x] 扫描用户账户下的文件，对可疑文件作出记录
-- [ ] 监测恶意频繁提交的学生，作出记录并发出警告信息*
+- 监测恶意频繁提交的学生，作出记录并发出警告信息*
 
 - 收集用户信息
   - [x] 首次开始实验的时间
   - [x] 登陆次数
   - [x] 在线时长
-  - [ ] 用户在线时执行的全部指令，以此判断是否存在恶意行为
-  - [ ] 提交答案的次数、每次提交的时间点*
-  - [ ] 每个 Phase 的提交次数*
-  - [ ] 每个 Phase 的排名*
+  - [ ] 用户恶意行为判断
+  - 提交答案的次数、每次提交的时间点*
+  - 每个 Phase 的提交次数*
+  - 每个 Phase 的排名*
 
-其中，需要处理 `lablogdata` 内的日志文件的需求（以星号标记）由程璇实现，其余需求由于海鑫实现（代码URL https://github.com/name1e5s/yamabuki）。
+其中，需要处理 `lablogdata` 内的日志文件的需求（以**星号**标记）由程璇实现，其余需求由于海鑫实现（代码URL https://github.com/name1e5s/yamabuki）。
 
 ## 实现记录
 
@@ -94,13 +94,25 @@ root 0.02
 name1e5s 3352.29
 ```
 
-### 用户运行指令记录（实现中）
+### 用户恶意行为判断（实现中）
 
-可以采用如下几种方案实现用户运行的全部指令：
+采用 Linux 内置的[审计框架](https://documentation.suse.com/sles/12-SP4/html/SLES-all/part-audit.html)直接记录恶意行为，这一系统可以对 `/etc/passwd`等重点文件做监控，以此判断是否发生提权；缺点是可能会影响服务器性能，同时管理较为复杂。
 
-- 修改 `.bash_logout`，在用户退出时将其执行过的指令（通过 `history` 指令获得）做记录（极容易被绕过）
-- 采用 [Snoopy](https://github.com/a2o/snoopy/) hook `execve`/`execv` 系统调用，记录用户执行的指令（对静态链接的程序无效，可以被绕过）
-- 采用 Linux 内置的[审计框架](https://documentation.suse.com/sles/12-SP4/html/SLES-all/part-audit.html)记录（很难被绕过，日志完善，同时可以对 `/etc/passwd`等文件做监控，以此监控是否发生提权；缺点是可能会影响服务器性能，同时管理较为复杂）
+考虑采用Linux 内置的审计框架实现，其输出日志如下：
 
-考虑采用Linux 内置的审计框架实现，目前仍在了解其效果。
+```bash
+root@sumeru:/var/log# ausearch -k sudo --raw | tail -10
+type=PATH msg=audit(1628043561.063:201): item=1 name="/lib64/ld-linux-x86-64.so.2" inode=1182753 dev=fc:01 mode=0100755 ouid=0 ogid=0 rdev=00:00 nametype=NORMAL cap_fp=0 cap_fi=0 cap_fe=0 cap_fver=0 cap_frootid=0
+type=PROCTITLE msg=audit(1628043561.063:201): proctitle=7375646F007375
+type=SYSCALL msg=audit(1628043561.183:202): arch=c000003e syscall=257 per=400000 success=yes exit=22 a0=ffffff9c a1=ee7548 a2=0 a3=0 items=1 ppid=1 pid=898 auid=4294967295 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=(none) ses=4294967295 comm="AliYunDun" exe="/usr/local/aegis/aegis_client/aegis_10_95/AliYunDun" key="sudo"
+type=CWD msg=audit(1628043561.183:202): cwd="/usr/local/aegis/aegis_client/aegis_10_95"
+type=PATH msg=audit(1628043561.183:202): item=0 name="/usr/bin/sudo" inode=1180601 dev=fc:01 mode=0104755 ouid=0 ogid=0 rdev=00:00 nametype=NORMAL cap_fp=0 cap_fi=0 cap_fe=0 cap_fver=0 cap_frootid=0
+type=PROCTITLE msg=audit(1628043561.183:202): proctitle="/usr/local/aegis/aegis_client/aegis_10_95/AliYunDun"
+type=SYSCALL msg=audit(1628043565.887:212): arch=c000003e syscall=257 per=400000 success=yes exit=22 a0=ffffff9c a1=ee7548 a2=0 a3=0 items=1 ppid=1 pid=898 auid=4294967295 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=(none) ses=4294967295 comm="AliYunDun" exe="/usr/local/aegis/aegis_client/aegis_10_95/AliYunDun" key="sudo"
+type=CWD msg=audit(1628043565.887:212): cwd="/usr/local/aegis/aegis_client/aegis_10_95"
+type=PATH msg=audit(1628043565.887:212): item=0 name="/usr/bin/sudo" inode=1180601 dev=fc:01 mode=0104755 ouid=0 ogid=0 rdev=00:00 nametype=NORMAL cap_fp=0 cap_fi=0 cap_fe=0 cap_fver=0 cap_frootid=0
+type=PROCTITLE msg=audit(1628043565.887:212): proctitle="/usr/local/aegis/aegis_client/aegis_10_95/AliYunDun"
+```
+
+可以通过对 `/etc` 等重要目录进行的操作、`auid` 显示为普通用户 `euid` 却为 `root` 的操作（提权、`sudo`	）等恶意行为做记录。通过对 `execve` 等系统调用做记录即可监测用户执行的指令。
 
