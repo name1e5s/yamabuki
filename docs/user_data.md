@@ -12,7 +12,7 @@
   - [x] 首次开始实验的时间
   - [x] 登陆次数
   - [x] 在线时长
-  - [ ] 用户恶意行为判断
+  - [x] 用户恶意行为记录
   - 提交答案的次数、每次提交的时间点*
   - 每个 Phase 的提交次数*
   - 每个 Phase 的排名*
@@ -94,11 +94,24 @@ root 0.02
 name1e5s 3352.29
 ```
 
-### 用户恶意行为判断（实现中）
+### 用户恶意行为记录（30-buptics.rules）
 
 采用 Linux 内置的[审计框架](https://documentation.suse.com/sles/12-SP4/html/SLES-all/part-audit.html)直接记录恶意行为，这一系统可以对 `/etc/passwd`等重点文件做监控，以此判断是否发生提权；缺点是可能会影响服务器性能，同时管理较为复杂。
 
-考虑采用Linux 内置的审计框架实现，其输出日志如下：
+考虑采用Linux 内置的审计框架实现，目前记录的恶意行为如下：
+
+- 用户的新增、删除、修改
+- 用户组的新增、删除、修改
+- 对 `/etc/crontab`等敏感配置文件的修改
+- 修改 `sudo` 相关配置文件
+- 访问审计日志
+- 修改`SELinux`相关配置文件
+- 任何形式的提权
+- 对时间的修改
+- 对 Locale 的修改
+- 不成功的文件创建、删除、修改内容、访问、修改权限、修改所有者
+
+示例输出日志如下：
 
 ```bash
 root@sumeru:/var/log# ausearch -k sudo --raw | tail -10
@@ -114,5 +127,4 @@ type=PATH msg=audit(1628043565.887:212): item=0 name="/usr/bin/sudo" inode=11806
 type=PROCTITLE msg=audit(1628043565.887:212): proctitle="/usr/local/aegis/aegis_client/aegis_10_95/AliYunDun"
 ```
 
-可以通过对 `/etc` 等重要目录进行的操作、`auid` 显示为普通用户 `euid` 却为 `root` 的操作（提权、`sudo`	）等恶意行为做记录。通过对 `execve` 等系统调用做记录即可监测用户执行的指令。
-
+通过 `ausearch`等工具可以从中快速查找在规则中定义的恶意行为日志并记录。 之后可以通过 `getent`指令从 `uid` 中获取学生信息。
