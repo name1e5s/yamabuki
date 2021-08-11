@@ -127,4 +127,7 @@ type=PATH msg=audit(1628043565.887:212): item=0 name="/usr/bin/sudo" inode=11806
 type=PROCTITLE msg=audit(1628043565.887:212): proctitle="/usr/local/aegis/aegis_client/aegis_10_95/AliYunDun"
 ```
 
-通过 `ausearch`等工具可以从中快速查找在规则中定义的恶意行为日志并记录。 之后可以通过 `getent`指令从 `uid` 中获取学生信息。
+通过 `ausearch`等工具可以从中快速查找在规则中定义的恶意行为日志并记录。 之后可以通过 `getent`指令从 `uid` 中获取学生信息。之后通过邮件的方式报警，方便快速记录行为，判断是否为误报。邮件示例如下：
+
+![](mail.png)
+
